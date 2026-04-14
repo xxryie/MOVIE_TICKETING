@@ -250,33 +250,35 @@ export default function Booking() {
                         <div className="screen-curve">
                             {selectedShowtime?.cinemaType === 'IMAX' ? 'IMAX SCREEN' : selectedShowtime?.cinemaType === 'Directors Club' ? "DIRECTOR'S SCREEN" : 'Screen'}
                         </div>
-                        <div className="seat-map" id="seat-map" style={{ 
-                            gridTemplateColumns: selectedShowtime?.cinemaType === 'IMAX' 
-                                ? `repeat(6, 1fr) 40px repeat(6, 1fr)` 
-                                : `repeat(${Math.max(...seats.map(s => s.seatCol), 1)}, 1fr)` 
-                        }}>
-                            {Array.from(new Set(seats.map(s => s.seatRow))).map(row => (
-                                <div key={row} style={{display: 'contents'}}>
-                                    <div className="seat-row-label">Row {row}</div>
-                                    {seats.filter(s => s.seatRow === row).map((seat) => {
-                                        const isSelected = selectedSeats.includes(seat.id);
-                                        const isImax = selectedShowtime?.cinemaType === 'IMAX';
-                                        return (
-                                            <>
-                                                {/* Add aisle spacer after column 6 for IMAX */}
-                                                {isImax && seat.seatCol === 7 && <div key={`aisle-${row}`} className="aisle-spacer"></div>}
-                                                <div 
-                                                    key={seat.id} 
-                                                    className={`seat ${seat.status} ${isSelected ? 'selected' : ''}`}
-                                                    onClick={() => toggleSeat(seat.id, seat.status)}
-                                                >
-                                                    {seat.seatCol}
-                                                </div>
-                                            </>
-                                        );
-                                    })}
-                                </div>
-                            ))}
+                        <div className="seat-map-scroll-container">
+                            <div className="seat-map" id="seat-map" style={{ 
+                                gridTemplateColumns: selectedShowtime?.cinemaType === 'IMAX' 
+                                    ? `repeat(6, 1fr) 40px repeat(6, 1fr)` 
+                                    : `repeat(${Math.max(...seats.map(s => s.seatCol), 1)}, 1fr)` 
+                            }}>
+                                {Array.from(new Set(seats.map(s => s.seatRow))).map(row => (
+                                    <div key={row} style={{display: 'contents'}}>
+                                        <div className="seat-row-label">Row {row}</div>
+                                        {seats.filter(s => s.seatRow === row).map((seat) => {
+                                            const isSelected = selectedSeats.includes(seat.id);
+                                            const isImax = selectedShowtime?.cinemaType === 'IMAX';
+                                            return (
+                                                <>
+                                                    {/* Add aisle spacer after column 6 for IMAX */}
+                                                    {isImax && seat.seatCol === 7 && <div key={`aisle-${row}`} className="aisle-spacer"></div>}
+                                                    <div 
+                                                        key={seat.id} 
+                                                        className={`seat ${seat.status} ${isSelected ? 'selected' : ''}`}
+                                                        onClick={() => toggleSeat(seat.id, seat.status)}
+                                                    >
+                                                        {seat.seatCol}
+                                                    </div>
+                                                </>
+                                            );
+                                        })}
+                                    </div>
+                                ))}
+                            </div>
                         </div>
                     </div>
 
@@ -287,11 +289,12 @@ export default function Booking() {
                     </div>
 
                     <div className="action-bar glass-panel sticky-action-bar">
-                        <p>Selected Seats: <span id="selected-count">{selectedSeats.length}</span> &nbsp;|&nbsp; Total: <strong id="total-price">₱{(selectedSeats.length * (movie.price || 250)).toFixed(2)}</strong></p>
+                        <p>Selected: <strong>{selectedSeats.length}</strong> seat(s) &nbsp;|&nbsp; Total: <strong style={{color:'var(--primary)'}}>₱{(selectedSeats.length * (movie.price || 250)).toFixed(2)}</strong></p>
                         <button id="btn-reserve" className="btn btn-primary" onClick={() => setStep(3)} disabled={selectedSeats.length === 0}>Confirm Reservation →</button>
                     </div>
                 </section>
             )}
+
 
             {step === 3 && (
                 <div className="modal-overlay" style={{ display: 'flex' }}>

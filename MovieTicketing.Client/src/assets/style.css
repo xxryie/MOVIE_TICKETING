@@ -1038,3 +1038,276 @@ h1, h2, h3 {
     font-weight: 700;
     color: #f8fafc;
 }
+
+/* =========================================
+   NAVBAR - RESPONSIVE FLEXBOX
+   ========================================= */
+
+.glass-header.navbar-flex {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.85rem 1.5rem;
+    text-align: left;
+}
+
+.navbar-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1rem;
+}
+
+.navbar-title {
+    font-size: 1.4rem;
+    font-weight: 800;
+    background: linear-gradient(to right, #a855f7, #6366f1);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-decoration: none;
+    line-height: 1;
+}
+
+.navbar-subtitle {
+    font-size: 0.75rem;
+    color: #64748b;
+}
+
+.navbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+.navbar-user {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+    white-space: nowrap;
+}
+
+.navbar-btn {
+    padding: 0.5rem 1rem;
+    font-size: 0.85rem;
+    margin-bottom: 0;
+    white-space: nowrap;
+    text-decoration: none;
+}
+
+/* =========================================
+   SEAT MAP - SCROLLABLE CONTAINER
+   ========================================= */
+
+.seat-map-scroll-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 1rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) transparent;
+}
+
+.seat-map-scroll-container::-webkit-scrollbar {
+    height: 6px;
+}
+
+.seat-map-scroll-container::-webkit-scrollbar-track {
+    background: rgba(255,255,255,0.05);
+    border-radius: 10px;
+}
+
+.seat-map-scroll-container::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 10px;
+}
+
+/* =========================================
+   RESPONSIVE MEDIA QUERIES
+   ========================================= */
+
+/* Tablet & Small Desktop */
+@media (max-width: 768px) {
+    /* Navbar */
+    .glass-header.navbar-flex {
+        padding: 0.75rem 1rem;
+    }
+
+    .navbar-title {
+        font-size: 1.1rem;
+    }
+
+    .navbar-subtitle {
+        display: none;
+    }
+
+    .navbar-user {
+        display: none;
+    }
+
+    /* Container */
+    .container {
+        padding: 1rem;
+    }
+
+    /* Movie Grid - 2 columns on mobile */
+    .movie-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+
+    /* Movie card text */
+    .movie-info h3 {
+        font-size: 0.95rem;
+    }
+
+    .movie-meta {
+        font-size: 0.75rem;
+        flex-wrap: wrap;
+    }
+
+    /* Movie Details Page */
+    .movie-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .movie-info-large h2 {
+        font-size: 1.5rem;
+    }
+
+    /* Seats - smaller on mobile */
+    .seat {
+        width: 32px;
+        height: 32px;
+        font-size: 0.6rem;
+        border-radius: 6px 6px 3px 3px;
+    }
+
+    .directors-club-room .seat {
+        width: 44px;
+        height: 38px;
+    }
+
+    /* Showtime grid */
+    .showtime-grid {
+        gap: 0.75rem;
+    }
+
+    .showtime-card {
+        padding: 0.75rem 1.25rem;
+        font-size: 0.95rem;
+    }
+
+    /* Legend */
+    .legend {
+        gap: 1rem;
+        flex-wrap: wrap;
+    }
+
+    /* Sticky action bar */
+    .sticky-action-bar {
+        flex-direction: column;
+        gap: 1rem;
+        bottom: 1rem;
+        padding: 0 0.5rem;
+    }
+
+    .sticky-action-bar .btn {
+        width: 100%;
+    }
+
+    /* Modals */
+    .modal-box {
+        max-width: 95%;
+        margin: 0.5rem;
+        padding: 1.5rem;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+
+    /* Payment methods */
+    .payment-methods {
+        flex-direction: column;
+    }
+
+    /* Calendar */
+    .calendar-wrapper {
+        margin: 1.5rem auto;
+        gap: 0.5rem;
+    }
+
+    .date-item {
+        min-width: 65px;
+        padding: 0.75rem 0.3rem;
+    }
+
+    .date-item .day-number {
+        font-size: 1.4rem;
+    }
+
+    /* Admin sidebar - collapse to top bar */
+    .admin-sidebar {
+        width: 100% !important;
+        height: auto !important;
+        border-right: none !important;
+        border-bottom: 1px solid rgba(255,255,255,0.05) !important;
+        flex-direction: row !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+        padding: 0.75rem 1rem !important;
+        overflow-x: auto !important;
+    }
+
+    .admin-sidebar nav {
+        flex-direction: row !important;
+        gap: 0.25rem !important;
+    }
+
+    .admin-layout {
+        flex-direction: column !important;
+        height: auto !important;
+        overflow: auto !important;
+    }
+
+    .admin-layout main {
+        padding: 1rem !important;
+    }
+
+    /* Queue page */
+    .queue-meta-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+}
+
+/* Phone - Narrow screens */
+@media (max-width: 480px) {
+    /* Movie Grid - single column on very small screens */
+    .movie-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+
+    .movie-info h3 {
+        font-size: 0.85rem;
+    }
+
+    /* Smaller seats */
+    .seat {
+        width: 27px;
+        height: 27px;
+        font-size: 0.5rem;
+    }
+
+    /* Booking header */
+    .booking-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    /* Buttons */
+    .btn {
+        padding: 0.65rem 1rem;
+        font-size: 0.9rem;
+    }
+}

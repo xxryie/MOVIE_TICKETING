@@ -13,17 +13,19 @@ export default function Navbar() {
     };
 
     return (
-        <header className="glass-header" style={{ position: 'relative' }}>
-            <h1><Link to="/" style={{color:'white', textDecoration:'none'}}>Stellar Cinemas</Link></h1>
-            <p>Your portal to infinite stories.</p>
-            <div className="auth-links" style={{ position: 'absolute', top: '50%', right: '2rem', transform: 'translateY(-50%)' }}>
+        <header className="glass-header navbar-flex">
+            <div className="navbar-brand">
+                <Link to="/" className="navbar-title">🎬 Stellar Cinemas</Link>
+                <span className="navbar-subtitle">Your portal to infinite stories.</span>
+            </div>
+            <div className="navbar-actions">
                 {isLoggedIn ? (
                     <>
-                        <span style={{ marginRight: '1rem' }}>Welcome, <strong>{username}</strong>!</span>
-                        <button onClick={handleLogout} className="btn btn-back" style={{ textDecoration: 'none', padding: '0.5rem 1rem', marginBottom: 0 }}>Logout</button>
+                        <span className="navbar-user">👤 <strong>{username}</strong></span>
+                        <button onClick={handleLogout} className="btn btn-back navbar-btn">Logout</button>
                     </>
                 ) : (
-                    <Link to="/login" className="btn btn-primary" style={{ textDecoration: 'none', fontSize: '0.9rem' }}>Login / Sign Up</Link>
+                    <Link to="/login" className="btn btn-primary navbar-btn">Login</Link>
                 )}
             </div>
         </header>
