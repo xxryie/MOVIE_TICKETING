@@ -48,13 +48,44 @@ namespace MovieTicketing.API.Controllers
                     .Take(5)
                     .ToListAsync();
 
+                // Get daily revenue trend for the last 14 days
+                var startDate = DateTime.UtcNow.Date.AddDays(-13);
+                var dailyTrendQuery = await _context.Reservations
+                    .Where(r => r.CreatedAt >= startDate)
+                    .OrderBy(r => r.CreatedAt)
+                    .Select(r => new { r.CreatedAt, r.TotalAmount })
+                    .ToListAsync();
+
+                var dailyTrend = dailyTrendQuery
+                    .GroupBy(r => r.CreatedAt.Date)
+                    .Select(g => new {
+                        Date = g.Key.ToString("MMM dd"),
+                        Revenue = g.Sum(x => x.TotalAmount)
+                    })
+                    .ToList();
+
+                // Ensure all 14 days are present (zero-fill missing dates)
+                var filledTrend = new List<object>();
+                for (int i = 13; i >= 0; i--)
+                {
+                    var date = DateTime.UtcNow.Date.AddDays(-i);
+                    var dateStr = date.ToString("MMM dd");
+                    var existing = dailyTrend.FirstOrDefault(t => t.Date == dateStr);
+                    filledTrend.Add(new {
+                        Date = dateStr,
+                        Revenue = existing?.Revenue ?? 0m
+                    });
+                }
+
                 return Ok(new {
                     success = true,
                     data = new {
                         totalBookings,
                         totalRevenue,
                         activeMovies,
-                        movieSales
+                        movieSales,
+                        revenueTrend = filledTrend,
+                        topMovie = movieSales.FirstOrDefault()
                     }
                 });
             }

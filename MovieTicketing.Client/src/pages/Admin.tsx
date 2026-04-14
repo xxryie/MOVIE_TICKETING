@@ -16,6 +16,21 @@ import {
   Users
 } from 'lucide-react';
 import api from '../services/api';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
+} from 'recharts';
+import { jsPDF } from 'jspdf';
+import 'jspdf-autotable';
 
 type Tab = 'dashboard' | 'movies' | 'showtimes' | 'reports';
 
@@ -107,6 +122,43 @@ export default function Admin() {
         } finally {
             setOccupancyLoading(false);
         }
+    };
+
+    const downloadPDF = () => {
+        const doc = new jsPDF() as any;
+        const now = new Date().toLocaleString();
+        
+        // Header
+        doc.setFontSize(20);
+        doc.setTextColor(40);
+        doc.text("CINEMA SALES REPORT", 14, 22);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generated on: ${now}`, 14, 30);
+        doc.text(`Total Revenue: PHP ${reports.reduce((acc, curr) => acc + curr.amount, 0).toLocaleString()}`, 14, 35);
+        
+        // Table
+        const tableColumn = ["Date", "Customer", "Movie", "Amount", "Payment", "Ref #"];
+        const tableRows = reports.map(r => [
+            new Date(r.date).toLocaleDateString(),
+            r.user,
+            r.movie,
+            `PHP ${r.amount.toLocaleString()}`,
+            r.paymentMethod.toUpperCase(),
+            r.paymentRef
+        ]);
+
+        doc.autoTable({
+            head: [tableColumn],
+            body: tableRows,
+            startY: 45,
+            theme: 'grid',
+            headStyles: { fillColor: [15, 23, 42] },
+            styles: { fontSize: 8 },
+        });
+
+        doc.save(`Cinema_Sales_Report_${new Date().toISOString().split('T')[0]}.pdf`);
     };
 
     const handleMovieSubmit = async (e: React.FormEvent) => {
@@ -250,6 +302,78 @@ export default function Admin() {
                             <StatCard label="Total Revenue" value={`₱${stats.totalRevenue.toLocaleString()}`} icon={<TrendingUp color="#d8b4fe" />} trend="+12.5%" />
                             <StatCard label="Tickets Sold" value={stats.totalBookings} icon={<Ticket color="#d8b4fe" />} trend="+5.2%" />
                             <StatCard label="Now Showing" value={stats.activeMovies} icon={<Film color="#d8b4fe" />} />
+                        </div>
+
+                        {/* Visual Analytics Row */}
+                        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '1.5rem', marginBottom: '2.5rem' }}>
+                            {/* Revenue Chart */}
+                            <div className="glass-panel" style={{ padding: '1.5rem', borderRadius: '1.5rem', height: '400px', display: 'flex', flexDirection: 'column' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                    <h3 style={{ color: 'white', fontSize: '1.1rem' }}>Revenue Trends (14 Days)</h3>
+                                    <TrendingUp size={18} color="#10b981" />
+                                </div>
+                                <div style={{ flex: 1, width: '100%' }}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={stats.revenueTrend}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
+                                            <XAxis 
+                                                dataKey="date" 
+                                                stroke="#64748b" 
+                                                fontSize={12} 
+                                                tickLine={false} 
+                                                axisLine={false} 
+                                            />
+                                            <YAxis 
+                                                stroke="#64748b" 
+                                                fontSize={12} 
+                                                tickLine={false} 
+                                                axisLine={false} 
+                                                tickFormatter={(value) => `₱${value}`}
+                                            />
+                                            <Tooltip 
+                                                contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '8px' }}
+                                                itemStyle={{ color: '#d8b4fe' }}
+                                                cursor={{ fill: 'rgba(216, 180, 254, 0.05)' }}
+                                            />
+                                            <Bar dataKey="revenue" fill="var(--primary)" radius={[4, 4, 0, 0]} barSize={20} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
+                            {/* Top Grossing Hero Card */}
+                            {stats.topMovie && (
+                                <div className="glass-panel" style={{ 
+                                    padding: '1.5rem', 
+                                    borderRadius: '1.5rem', 
+                                    background: 'linear-gradient(135deg, rgba(216, 180, 254, 0.1) 0%, rgba(15, 23, 42, 0.5) 100%)',
+                                    border: '1px solid rgba(216, 180, 254, 0.1)',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    justifyContent: 'center',
+                                    position: 'relative',
+                                    overflow: 'hidden'
+                                }}>
+                                    <div style={{ position: 'absolute', top: '-20px', right: '-20px', opacity: 0.1 }}>
+                                        <TrendingUp size={200} color="var(--primary)" />
+                                    </div>
+                                    <div style={{ position: 'relative', zIndex: 1 }}>
+                                        <div style={{ background: 'var(--primary)', color: 'white', display: 'inline-block', padding: '0.3rem 0.8rem', borderRadius: '20px', fontSize: '0.7rem', fontWeight: 800, marginBottom: '1rem' }}>TOP GROSSING</div>
+                                        <h2 style={{ color: 'white', fontSize: '2.2rem', fontWeight: 900, marginBottom: '0.5rem' }}>{stats.topMovie.title}</h2>
+                                        <div style={{ display: 'flex', gap: '2rem', marginTop: '1.5rem' }}>
+                                            <div>
+                                                <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Total Revenue</div>
+                                                <div style={{ color: '#10b981', fontSize: '1.5rem', fontWeight: 800 }}>₱{stats.topMovie.revenue.toLocaleString()}</div>
+                                            </div>
+                                            <div>
+                                                <div style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Tickets Sold</div>
+                                                <div style={{ color: 'white', fontSize: '1.5rem', fontWeight: 800 }}>{stats.topMovie.ticketsSold}</div>
+                                            </div>
+                                        </div>
+                                        <button className="btn btn-primary" style={{ marginTop: '2rem', width: 'fit-content', padding: '0.8rem 1.5rem' }}>View Analytics</button>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div style={{ background: '#0f172a', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
@@ -403,8 +527,13 @@ export default function Admin() {
                         <div style={{ background: '#0f172a', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
                                 <h3 style={{ color: 'white' }}>Comprehensive Sales Report</h3>
-                                <div style={{ color: '#10b981', fontWeight: 800, fontSize: '1.2rem' }}>
-                                    Total: ₱{reports.reduce((acc, curr) => acc + curr.amount, 0).toLocaleString()}
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                                    <div style={{ color: '#10b981', fontWeight: 800, fontSize: '1.2rem' }}>
+                                        Total: ₱{reports.reduce((acc, curr) => acc + curr.amount, 0).toLocaleString()}
+                                    </div>
+                                    <button onClick={downloadPDF} className="btn" style={{ background: 'rgba(255,255,255,0.05)', color: 'white', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                        Download PDF
+                                    </button>
                                 </div>
                             </div>
                             <table style={{ width: '100%', borderCollapse: 'collapse', color: 'white' }}>
