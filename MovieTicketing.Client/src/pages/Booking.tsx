@@ -258,7 +258,7 @@ export default function Booking() {
                             {Array.from(new Set(seats.map(s => s.seatRow))).map(row => (
                                 <div key={row} style={{display: 'contents'}}>
                                     <div className="seat-row-label">Row {row}</div>
-                                    {seats.filter(s => s.seatRow === row).map((seat, index) => {
+                                    {seats.filter(s => s.seatRow === row).map((seat) => {
                                         const isSelected = selectedSeats.includes(seat.id);
                                         const isImax = selectedShowtime?.cinemaType === 'IMAX';
                                         return (

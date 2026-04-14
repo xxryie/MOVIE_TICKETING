@@ -9,11 +9,9 @@ import {
   Edit, 
   Trash2, 
   TrendingUp, 
-  Users, 
   Ticket,
   Search,
-  X,
-  Calendar
+  X
 } from 'lucide-react';
 import api from '../services/api';
 
