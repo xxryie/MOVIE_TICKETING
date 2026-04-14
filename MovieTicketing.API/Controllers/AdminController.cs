@@ -225,5 +225,73 @@ namespace MovieTicketing.API.Controllers
                 return StatusCode(500, new { success = false, message = "Failed to delete showtime.", error = ex.Message });
             }
         }
+
+        // --- REPORTS & OCCUPANCY ---
+        [HttpGet("reports")]
+        public async Task<IActionResult> GetReports()
+        {
+            try
+            {
+                var reports = await _context.Reservations
+                    .Include(r => r.User)
+                    .Include(r => r.Showtime)
+                    .ThenInclude(s => s.Movie)
+                    .Include(r => r.Payment)
+                    .OrderByDescending(r => r.CreatedAt)
+                    .Select(r => new {
+                        Id = r.Id,
+                        User = r.User.Username,
+                        Movie = r.Showtime.Movie.Title,
+                        Showtime = r.Showtime.ShowTime,
+                        ShowtimeId = r.ShowtimeId,
+                        Amount = r.TotalAmount,
+                        PaymentMethod = r.Payment.PaymentMethod,
+                        PaymentRef = r.Payment.PaymentRef,
+                        Date = r.CreatedAt
+                    })
+                    .ToListAsync();
+
+                return Ok(new { success = true, data = reports });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error fetching reports", error = ex.Message });
+            }
+        }
+
+        [HttpGet("occupancy/{showtimeId}")]
+        public async Task<IActionResult> GetOccupancy(int showtimeId)
+        {
+            try
+            {
+                var seats = await _context.Seats
+                    .Where(s => s.ShowtimeId == showtimeId)
+                    .OrderBy(s => s.SeatRow)
+                    .ThenBy(s => s.SeatCol)
+                    .ToListAsync();
+
+                var reservations = await _context.Reservations
+                    .Where(r => r.ShowtimeId == showtimeId)
+                    .Include(r => r.User)
+                    .ToListAsync();
+
+                var data = seats.Select(s => {
+                    var reservation = reservations.FirstOrDefault(r => r.SeatId == s.Id);
+                    return new {
+                        Id = s.Id,
+                        Row = s.SeatRow,
+                        Col = s.SeatCol,
+                        Status = s.Status,
+                        BookedBy = reservation?.User?.Username ?? null
+                    };
+                });
+
+                return Ok(new { success = true, data = data });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { success = false, message = "Error fetching occupancy", error = ex.Message });
+            }
+        }
     }
 }

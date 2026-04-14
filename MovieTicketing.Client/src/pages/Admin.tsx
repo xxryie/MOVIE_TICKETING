@@ -11,11 +11,13 @@ import {
   TrendingUp, 
   Ticket,
   Search,
-  X
+  X,
+  BarChart3,
+  Users
 } from 'lucide-react';
 import api from '../services/api';
 
-type Tab = 'dashboard' | 'movies' | 'showtimes';
+type Tab = 'dashboard' | 'movies' | 'showtimes' | 'reports';
 
 export default function Admin() {
     const navigate = useNavigate();
@@ -30,6 +32,11 @@ export default function Admin() {
     const [editingMovie, setEditingMovie] = useState<any>(null);
     const [isShowtimeModalOpen, setIsShowtimeModalOpen] = useState(false);
     const [targetMovieId, setTargetMovieId] = useState<number | null>(null);
+    const [reports, setReports] = useState<any[]>([]);
+    const [occupancyData, setOccupancyData] = useState<any[]>([]);
+    const [selectedOccupancyShowtime, setSelectedOccupancyShowtime] = useState<any>(null);
+    const [isOccupancyModalOpen, setIsOccupancyModalOpen] = useState(false);
+    const [occupancyLoading, setOccupancyLoading] = useState(false);
 
     // Form State
     const [movieForm, setMovieForm] = useState({
@@ -69,10 +76,36 @@ export default function Admin() {
             ]);
             if (statsRes.data.success) setStats(statsRes.data.data);
             if (moviesRes.data.success) setMovies(moviesRes.data.data);
+            
+            // Fetch reports too
+            fetchReports();
         } catch (err: any) {
             if (err.response?.status === 401) navigate('/login');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const fetchReports = async () => {
+        try {
+            const res = await api.get('/admin/reports');
+            if (res.data.success) setReports(res.data.data);
+        } catch (err) {
+            console.error("Error fetching reports", err);
+        }
+    };
+
+    const fetchOccupancy = async (st: any) => {
+        setOccupancyLoading(true);
+        setSelectedOccupancyShowtime(st);
+        setIsOccupancyModalOpen(true);
+        try {
+            const res = await api.get(`/admin/occupancy/${st.id}`);
+            if (res.data.success) setOccupancyData(res.data.data);
+        } catch (err) {
+            console.error("Error fetching occupancy", err);
+        } finally {
+            setOccupancyLoading(false);
         }
     };
 
@@ -185,6 +218,7 @@ export default function Admin() {
                     <SidebarLink active={activeTab === 'dashboard'} icon={<LayoutDashboard size={20} />} label="Dashboard" onClick={() => setActiveTab('dashboard')} />
                     <SidebarLink active={activeTab === 'movies'} icon={<Film size={20} />} label="Movies" onClick={() => setActiveTab('movies')} />
                     <SidebarLink active={activeTab === 'showtimes'} icon={<Clock size={20} />} label="Showtimes" onClick={() => setActiveTab('showtimes')} />
+                    <SidebarLink active={activeTab === 'reports'} icon={<BarChart3 size={20} />} label="Reports" onClick={() => setActiveTab('reports')} />
                 </nav>
 
                 <button onClick={handleLogout} style={{ marginTop: 'auto', display: 'flex', alignItems: 'center', gap: '0.8rem', padding: '1rem', background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer', borderRadius: '12px', transition: 'all 0.3s' }}>
@@ -330,6 +364,13 @@ export default function Admin() {
                                                                      {new Date(st.showTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                                                                      <span style={{ fontSize: '0.6rem', background: st.cinemaType === 'IMAX' ? '#2563eb' : st.cinemaType === 'Directors Club' ? '#ca8a04' : '#475569', color: 'white', padding: '0.1rem 0.3rem', borderRadius: '4px', marginLeft: '0.3rem' }}>{st.cinemaType}</span>
                                                                      <button 
+                                                                        onClick={() => fetchOccupancy(st)}
+                                                                        title="View Occupancy"
+                                                                        style={{ background: 'transparent', border: 'none', color: '#10b981', cursor: 'pointer', padding: '0.2rem', display: 'flex', marginLeft: '0.5rem' }}
+                                                                     >
+                                                                         <Users size={12} />
+                                                                     </button>
+                                                                     <button 
                                                                         onClick={async () => {
                                                                             if(window.confirm("Delete this showtime?")) {
                                                                                 await api.delete(`/admin/showtimes/${st.id}`);
@@ -352,6 +393,53 @@ export default function Admin() {
                                      </div>
                                  ))}
                              </div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Reports Tab Content */}
+                {activeTab === 'reports' && (
+                    <div className="fade-in">
+                        <div style={{ background: '#0f172a', padding: '1.5rem', borderRadius: '1.5rem', border: '1px solid rgba(255,255,255,0.05)' }}>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                                <h3 style={{ color: 'white' }}>Comprehensive Sales Report</h3>
+                                <div style={{ color: '#10b981', fontWeight: 800, fontSize: '1.2rem' }}>
+                                    Total: ₱{reports.reduce((acc, curr) => acc + curr.amount, 0).toLocaleString()}
+                                </div>
+                            </div>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', color: 'white' }}>
+                                <thead>
+                                    <tr style={{ color: '#64748b', fontSize: '0.8rem', textTransform: 'uppercase', textAlign: 'left', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                                        <th style={{ padding: '1rem' }}>Date</th>
+                                        <th style={{ padding: '1rem' }}>Customer</th>
+                                        <th style={{ padding: '1rem' }}>Movie</th>
+                                        <th style={{ padding: '1rem' }}>Amount</th>
+                                        <th style={{ padding: '1rem' }}>Payment</th>
+                                        <th style={{ padding: '1rem' }}>Ref #</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {reports.map((r: any) => (
+                                        <tr key={r.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.03)', fontSize: '0.9rem' }}>
+                                            <td style={{ padding: '1rem', color: '#94a3b8' }}>{new Date(r.date).toLocaleDateString()}</td>
+                                            <td style={{ padding: '1rem', fontWeight: 700 }}>{r.user}</td>
+                                            <td style={{ padding: '1rem' }}>{r.movie}</td>
+                                            <td style={{ padding: '1rem', color: '#10b981', fontWeight: 700 }}>₱{r.amount.toLocaleString()}</td>
+                                            <td style={{ padding: '1rem' }}>
+                                                <span style={{ fontSize: '0.7rem', padding: '0.2rem 0.5rem', borderRadius: '4px', background: r.paymentMethod === 'gcash' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(59, 130, 246, 0.1)', color: r.paymentMethod === 'gcash' ? '#22c55e' : '#3b82f6', textTransform: 'uppercase' }}>
+                                                    {r.paymentMethod}
+                                                </span>
+                                            </td>
+                                            <td style={{ padding: '1rem', fontFamily: 'monospace', fontSize: '0.75rem', color: '#64748b' }}>{r.paymentRef}</td>
+                                        </tr>
+                                    ))}
+                                    {reports.length === 0 && (
+                                        <tr>
+                                            <td colSpan={6} style={{ padding: '3rem', textAlign: 'center', color: '#475569' }}>No report data found.</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 )}
@@ -449,6 +537,88 @@ export default function Admin() {
                         </form>
                      </div>
                  </div>
+            )}
+
+            {/* Occupancy Modal */}
+            {isOccupancyModalOpen && (
+                <div className="modal-overlay" style={{ background: 'rgba(2, 6, 23, 0.9)', backdropFilter: 'blur(10px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div className="modal-box glass-panel fade-in" style={{ width: '100%', maxWidth: '900px', maxHeight: '90vh', overflow: 'hidden', display: 'flex', flexDirection: 'column' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '1.5rem 2rem', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                            <div>
+                                <h2 style={{ color: 'white', fontSize: '1.5rem' }}>Live Theater Occupancy</h2>
+                                <p style={{ color: '#94a3b8', fontSize: '0.8rem' }}>
+                                    {selectedOccupancyShowtime?.cinemaType} Cinema • {new Date(selectedOccupancyShowtime?.showTime).toLocaleString([], { dateStyle: 'long', timeStyle: 'short' })}
+                                </p>
+                            </div>
+                            <button onClick={() => setIsOccupancyModalOpen(false)} style={{ background: 'transparent', border: 'none', color: '#94a3b8', cursor: 'pointer' }}><X /></button>
+                        </div>
+                        
+                        <div style={{ flex: 1, overflowY: 'auto', padding: '2rem', textAlign: 'center' }}>
+                            {occupancyLoading ? (
+                                <div style={{ padding: '4rem', color: 'white' }}>Loading map data...</div>
+                            ) : (
+                                <>
+                                    <div className="screen-container" style={{ marginBottom: '4rem' }}>
+                                        <div className="admin-screen-visual" style={{ margin: '0 auto', maxWidth: '400px', height: '6px', background: 'var(--primary)', boxShadow: '0 4px 20px var(--primary)', borderRadius: '10px' }}></div>
+                                        <p style={{ marginTop: '1rem', color: '#64748b', fontSize: '0.7rem', letterSpacing: '4px' }}>SCREEN</p>
+                                    </div>
+
+                                    <div style={{ display: 'inline-grid', gap: '8px', padding: '20px', background: 'rgba(0,0,0,0.2)', borderRadius: '20px' }}>
+                                        {Object.entries(
+                                            occupancyData.reduce((acc: any, seat: any) => {
+                                                if (!acc[seat.row]) acc[seat.row] = [];
+                                                acc[seat.row].push(seat);
+                                                return acc;
+                                            }, {})
+                                        ).map(([rowLabel, seats]: [string, any]) => (
+                                            <div key={rowLabel} style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                                                <span style={{ color: '#444c5a', fontSize: '0.7rem', width: '20px', fontWeight: 800 }}>{rowLabel}</span>
+                                                <div style={{ display: 'flex', gap: '8px' }}>
+                                                    {seats.map((seat: any) => (
+                                                        <div 
+                                                            key={seat.id} 
+                                                            title={seat.bookedBy ? `Booked by: ${seat.bookedBy}` : "Available"}
+                                                            style={{ 
+                                                                width: '28px', 
+                                                                height: '28px', 
+                                                                borderRadius: '6px',
+                                                                background: seat.status === 'reserved' ? 'var(--primary)' : 'rgba(255,255,255,0.03)',
+                                                                border: `1px solid ${seat.status === 'reserved' ? 'var(--primary)' : 'rgba(255,255,255,0.05)'}`,
+                                                                display: 'flex',
+                                                                alignItems: 'center',
+                                                                justifyContent: 'center',
+                                                                fontSize: '0.6rem',
+                                                                color: seat.status === 'reserved' ? 'white' : '#475569',
+                                                                cursor: seat.bookedBy ? 'pointer' : 'default',
+                                                                position: 'relative'
+                                                            }}
+                                                        >
+                                                            {seat.bookedBy && <Users size={12} />}
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div style={{ display: 'flex', justifyContent: 'center', gap: '2rem', marginTop: '3rem' }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <div style={{ width: '12px', height: '12px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)', borderRadius: '3px' }}></div>
+                                            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Available</span>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                                            <div style={{ width: '12px', height: '12px', background: 'var(--primary)', borderRadius: '3px' }}></div>
+                                            <span style={{ fontSize: '0.75rem', color: '#94a3b8' }}>Reserved</span>
+                                        </div>
+                                        <div style={{ fontSize: '0.75rem', color: 'var(--primary)', fontWeight: 800 }}>
+                                            {occupancyData.filter(s => s.status === 'reserved').length} / {occupancyData.length} Sold
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                </div>
             )}
 
         </div>
