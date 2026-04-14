@@ -14,10 +14,13 @@ export default function QueueRoom() {
                 const res = await api.get(`/queue/status/${showtimeId}`);
                 setStatus(res.data);
                 if (res.data.status === 'Active') {
-                    // Turn granted! Move to booking
-                    navigate(`/book/${res.data.movieId || 'active'}`, { replace: true });
-                    // Wait, navigate to the specific booking page but we need movie ID.
-                    // Actually, I'll update the API to return the MovieId too.
+                    if (res.data.movieId) {
+                        // Turn granted! Move to booking
+                        navigate(`/book/${res.data.movieId}`, { replace: true });
+                    } else {
+                        // Fallback if movieId is missing from response temporarily
+                        console.warn("Turn active but MovieId missing. Retrying...");
+                    }
                 }
             } catch (err) {
                 console.error("Queue check failed", err);
