@@ -155,11 +155,12 @@ namespace MovieTicketing.API.Controllers
         {
             if (showtime == null) return BadRequest(new { success = false, message = "Invalid data" });
             
-            try
-            {
                 // Verify movie exists
                 if (!await _context.Movies.AnyAsync(m => m.Id == showtime.MovieId))
                     return BadRequest(new { success = false, message = "Movie ID not found" });
+
+                // Ensure DateTime is UTC for PostgreSQL
+                showtime.ShowTime = DateTime.SpecifyKind(showtime.ShowTime, DateTimeKind.Utc);
 
                 _context.Showtimes.Add(showtime);
                 await _context.SaveChangesAsync();
