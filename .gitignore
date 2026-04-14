@@ -1,0 +1,39 @@
+# --- React / Node ---
+node_modules/
+dist/
+dist-ssr/
+*.local
+.npm
+.eslintcache
+.stylelintcache
+
+# --- .NET / C# ---
+bin/
+obj/
+*.user
+*.userosscache
+*.sln.docstates
+.vs/
+.root
+App_Data/
+*.db
+*.db-shm
+*.db-wal
+
+# --- Environment Secrets ---
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+appsettings.Development.json
+
+# --- OS ---
+.DS_Store
+Thumbs.db
+
+# --- Tools ---
+.gemini/
+.idea/
+.project
+.settings/
