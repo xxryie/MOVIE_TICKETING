@@ -15,8 +15,8 @@ export default function QueueRoom() {
                 setStatus(res.data);
                 if (res.data.status === 'Active') {
                     if (res.data.movieId) {
-                        // Turn granted! Move to booking
-                        navigate(`/book/${res.data.movieId}`, { replace: true });
+                        // Turn granted! Move to booking and jump directly to seats
+                        navigate(`/book/${res.data.movieId}?queue_showtime=${showtimeId}`, { replace: true });
                     } else {
                         // Fallback if movieId is missing from response temporarily
                         console.warn("Turn active but MovieId missing. Retrying...");

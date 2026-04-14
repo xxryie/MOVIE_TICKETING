@@ -7,6 +7,7 @@ export default function Booking() {
     const navigate = useNavigate();
     const [searchParams] = useSearchParams();
     const filterDate = searchParams.get('date');
+    const queueShowtimeId = searchParams.get('queue_showtime');
 
     const [movie, setMovie] = useState<any>(null);
     const [showtimes, setShowtimes] = useState<any[]>([]);
@@ -41,6 +42,17 @@ export default function Booking() {
             setStep(2);
         });
     };
+
+    // Auto-select showtime and jump to seats if coming from waiting room
+    useEffect(() => {
+        if (showtimes.length > 0 && queueShowtimeId && !selectedShowtime) {
+            const st = showtimes.find((s: any) => s.id === Number(queueShowtimeId));
+            if (st) {
+                setSelectedShowtime(st);
+                loadSeats(st.id);
+            }
+        }
+    }, [showtimes, queueShowtimeId, selectedShowtime]);
 
     const handleShowtimeClick = async (st: any) => {
         const token = localStorage.getItem('token');
