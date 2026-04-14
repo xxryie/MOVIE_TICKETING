@@ -39,7 +39,7 @@ export default function Receipt() {
                 <p style={{ color: '#94a3b8', fontSize: '0.9rem', marginBottom: '2rem' }}>Please present this QR code at the cinema entrance.</p>
                 
                 <div style={{ background: 'white', padding: '1.2rem', display: 'inline-block', borderRadius: '16px', boxShadow: '0 10px 30px rgba(0,0,0,0.5)', marginBottom: '2.5rem' }}>
-                    <QRCodeSVG value={`http://localhost:5173/receipt/${token}`} size={200} />
+                    <QRCodeSVG value={typeof window !== 'undefined' ? window.location.href : `https://movie-ticketing-vwdq.vercel.app/receipt/${token}`} size={200} />
                 </div>
 
                 <div className="receipt-details" style={{ width: '100%', textAlign: 'left', background: 'rgba(0,0,0,0.2)', padding: '1.5rem', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.05)', marginBottom: '2rem' }}>
