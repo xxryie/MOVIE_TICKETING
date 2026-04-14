@@ -92,6 +92,10 @@ namespace MovieTicketing.API.Controllers
             var entry = await _context.BookingQueue
                 .FirstOrDefaultAsync(q => q.ShowtimeId == showtimeId && q.UserId == userId);
 
+            // Fetch MovieId for redirection
+            var showtime = await _context.Showtimes.FindAsync(showtimeId);
+            var movieId = showtime?.MovieId;
+
             if (entry == null) return NotFound(new { message = "No queue entry found." });
 
             if (entry.Status == "Active")
@@ -100,16 +104,13 @@ namespace MovieTicketing.API.Controllers
                 {
                     return Ok(new { status = "Expired" });
                 }
-                return Ok(new { status = "Active", expiresAt = entry.ExpiresAt });
+                return Ok(new { status = "Active", expiresAt = entry.ExpiresAt, movieId = movieId });
             }
 
             // Calculate position: how many Waiting users for THIS showtime have an earlier CreatedAt?
             var usersAhead = await _context.BookingQueue
                 .CountAsync(q => q.ShowtimeId == showtimeId && q.Status == "Waiting" && q.CreatedAt < entry.CreatedAt);
 
-            // Fetch MovieId for redirection
-            var showtime = await _context.Showtimes.FindAsync(showtimeId);
-            var movieId = showtime?.MovieId;
 
             // Estimate wait time: (Active User Time Remaining) + (Users Ahead * 3 mins)
             var activeUser = await _context.BookingQueue
