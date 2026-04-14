@@ -16,8 +16,21 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 // Add DbContext
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL") 
+var rawConnStr = Environment.GetEnvironmentVariable("DATABASE_URL") 
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Auto-convert URI format (postgresql://...) to ADO.NET format (Host=...;)
+string connectionString;
+if (rawConnStr != null && rawConnStr.StartsWith("postgres"))
+{
+    var uri = new Uri(rawConnStr);
+    var userInfo = uri.UserInfo.Split(':');
+    connectionString = $"Host={uri.Host};Port={uri.Port};Username={userInfo[0]};Password={userInfo[1]};Database={uri.AbsolutePath.TrimStart('/')};SSL Mode=Require;Trust Server Certificate=true;";
+}
+else
+{
+    connectionString = rawConnStr ?? "";
+}
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
