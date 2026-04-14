@@ -366,7 +366,13 @@ export default function Admin() {
                                                 <div style={{ color: 'white', fontSize: '1.5rem', fontWeight: 800 }}>{stats.topMovie.ticketsSold}</div>
                                             </div>
                                         </div>
-                                        <button className="btn btn-primary" style={{ marginTop: '2rem', width: 'fit-content', padding: '0.8rem 1.5rem' }}>View Analytics</button>
+                                        <button 
+                                            onClick={() => setActiveTab('reports')}
+                                            className="btn btn-primary" 
+                                            style={{ marginTop: '2rem', width: 'fit-content', padding: '0.8rem 1.5rem' }}
+                                        >
+                                            View Analytics
+                                        </button>
                                     </div>
                                 </div>
                             )}
