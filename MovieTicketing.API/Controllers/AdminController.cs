@@ -155,6 +155,8 @@ namespace MovieTicketing.API.Controllers
         {
             if (showtime == null) return BadRequest(new { success = false, message = "Invalid data" });
             
+            try
+            {
                 // Verify movie exists
                 if (!await _context.Movies.AnyAsync(m => m.Id == showtime.MovieId))
                     return BadRequest(new { success = false, message = "Movie ID not found" });
